@@ -1,278 +1,268 @@
-# ImmuTree-persistence-tree-engine
+# 🌳 ImmuTree — Persistent Tree Engine for Java
 
-A **Java library for persistent (immutable) tree data structures** built on structural sharing (path-copying). Every mutating operation — update, add, remove — produces a new version of the tree while leaving all prior versions intact and reachable. No copies of unchanged nodes are made; unmodified subtrees are shared across versions.
+> A high-performance **immutable (persistent) tree library** for Java, built using structural sharing (path-copying).
+
+![Java](https://img.shields.io/badge/Java-17+-orange)
+![Build](https://img.shields.io/badge/Build-Maven-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
+![Status](https://img.shields.io/badge/Status-Active-success)
 
 ---
 
-## What Does "Persistent" Mean?
+## ✨ Why ImmuTree?
 
-In the functional-programming sense, a *persistent* data structure preserves all previous versions of itself after a modification. This library achieves persistence through **path-copying**: only the nodes along the path from the root to the modified node are recreated; every other subtree is reused by reference.
+Traditional tree structures mutate in place — once changed, the previous state is gone.
+
+**ImmuTree does the opposite.**
+
+Every modification:
+- creates a **new version of the tree**
+- preserves **all previous versions**
+- avoids unnecessary copying via **structural sharing**
+
+👉 Think Git, but for trees.
+
+---
+
+## 🧠 What “Persistent” Actually Means
+
+A persistent data structure **never overwrites itself**.
+
+Instead of modifying nodes directly, ImmuTree uses **path-copying**:
+
+- Only nodes along the modification path are recreated
+- All other subtrees are reused (shared)
 
 ```
-Version 1          Version 2 (after updating D)
-    A                  A'          ← new
-   / \                / \
-  B   C             B'   C        ← C reused
- / \               / \
-D   E            D'   E           ← E reused, D' is new
+Version 1              Version 2
+    A                      A'
+   / \                    / \
+  B   C       →          B'  C
+ / \                    / \
+D   E                  D'  E
 ```
 
----
-
-## Features
-
-- Fully persistent N-ary tree (unbounded children per node)
-- Fully persistent binary tree (left/right named slots)
-- Structural sharing — O(depth) memory per version
-- Depth-first (pre-order), breadth-first, and in-order iterators
-- Manual version snapshotting and time-travel retrieval
-- Predicate-based node search (`findAll`)
-- Node lookup by `NodeID` (`getNode`)
-- `NodePositionOccupiedException` for binary slot enforcement
-- Fully documented Javadoc on every public type and method
+✔ Minimal memory overhead  
+✔ O(depth) updates  
+✔ Instant time-travel to any version  
 
 ---
 
-## Installation
+## 🚀 Features
 
-Add to your `pom.xml`:
+- 🌲 Persistent **N-ary tree**
+- 🌿 Persistent **Binary tree**
+- ♻️ Structural sharing (efficient memory usage)
+- 🔁 DFS, BFS, and In-order traversal
+- 🕓 Versioning & time-travel
+- 🔍 Predicate-based search (`findAll`)
+- 🧩 Node lookup via `NodeID`
+- ⚠️ Strict binary constraints with exceptions
+- 📚 Fully documented public API
+
+---
+
+## 📦 Installation
 
 ```xml
 <dependency>
-    <groupId>org.pvb</groupId>
-    <artifactId>persistence-tree-engine</artifactId>
-    <version>1.1.0</version>
+    <groupId>io.github.ParthBedekar</groupId>
+    <artifactId>immutree</artifactId>
+    <version>1.0.0</version>
 </dependency>
 ```
 
 ---
 
-## Quick Start
+## ⚡ Quick Start
 
-### N-ary Tree
+### 🌲 N-ary Tree
 
 ```java
-import org.pvb.persistenttree.api.*;
-import org.pvb.persistenttree.api.Enums.TreeType;
-import org.pvb.persistenttree.core.TreeFactory;
+import io.github.ParthBedekar.api.*;
+import io.github.ParthBedekar.api.Enums.TreeType;
+import io.github.ParthBedekar.core.TreeFactory;
 
-// Create a tree
 PersistentTree<String, String> tree =
         TreeFactory.createTree("Root", TreeType.N_ARY);
 
-// Add children
 NodeID child1 = tree.addChild(tree.getRoot().getID(), "Child-1");
 NodeID child2 = tree.addChild(tree.getRoot().getID(), "Child-2");
 
-// Snapshot current state
 tree.getVersionManager().addVersion("v1", tree.getRoot());
 
-// Mutate — old version is untouched
-tree.update(child1, "Child-1-Updated");
+tree.update(child1, "Updated");
 
-// Retrieve old version
-PersistentDataNode<String> v1 = tree.getVersionManager()
-        .getVersion("v1").orElseThrow();
-
-// Traverse current version (DFS)
-PersistentIterator<String> it = tree.dfsIterator();
-while (it.hasNext()) {
-    System.out.println(it.next().getData());
-}
+PersistentDataNode<String> old =
+        tree.getVersionManager().getVersion("v1").orElseThrow();
 ```
 
-### Binary Tree
+---
+
+### 🌿 Binary Tree
 
 ```java
 BinaryTree<String, Integer> tree =
-        (BinaryTree<String, Integer>)
-        TreeFactory.<String, Integer>createTree(10, TreeType.BINARY);
+    (BinaryTree<String, Integer>)
+    TreeFactory.<String, Integer>createTree(10, TreeType.BINARY);
 
-NodeID leftId  = tree.addLeftChild(tree.getRoot().getID(), 5);
-NodeID rightId = tree.addRightChild(tree.getRoot().getID(), 15);
-tree.addLeftChild(leftId, 3);
-tree.addRightChild(leftId, 7);
+NodeID left = tree.addLeftChild(tree.getRoot().getID(), 5);
+NodeID right = tree.addRightChild(tree.getRoot().getID(), 15);
 
-// In-order traversal → 3, 5, 7, 10, 15
-PersistentIterator<Integer> it = tree.inOrderIterator();
-while (it.hasNext()) {
-    System.out.println(it.next().getData());
-}
+tree.addLeftChild(left, 3);
+tree.addRightChild(left, 7);
 ```
 
 ---
 
-## Core API
+## 🧩 Core Concepts
 
-### `TreeFactory`
+### 🏗 TreeFactory
 
-The sole entry point for creating trees.
-
-| Method | Description |
-|---|---|
-| `TreeFactory.createTree(T data, TreeType type)` | Creates a new tree of the given type with one root node |
-
-`TreeType` values: `N_ARY`, `BINARY`
-
-> When creating a `BINARY` tree, cast the result to `BinaryTree<K,T>` to access binary-specific methods.
-
----
-
-### `PersistentTree<K, T>`
-
-The base interface for all tree types.
-
-| Method | Description |
-|---|---|
-| `addChild(NodeID parentID, T data)` | Adds a child to the given parent; returns the new child's `NodeID` |
-| `update(NodeID id, T data)` | Replaces node data; returns new root |
-| `removeNode(NodeID id)` | Removes node and its subtree; returns new root |
-| `removeNode(NodeID id, PersistentDataNode<T> subtree)` | Removes within a specific subtree |
-| `getRoot()` | Returns the current root node |
-| `dfsIterator()` | Depth-first pre-order iterator from root |
-| `dfsIterator(PersistentDataNode<T> node)` | DFS from a specific node |
-| `bfsIterator()` | Breadth-first iterator from root |
-| `bfsIterator(PersistentDataNode<T> node)` | BFS from a specific node |
-| `getNodeManager()` | Returns the `NodeManager` for lookup and search |
-| `getVersionManager()` | Returns the `VersionManager` for snapshotting |
-
----
-
-### `BinaryTree<K, T>` *(extends `PersistentTree`)*
-
-Additional methods available when using `TreeType.BINARY`.
-
-| Method | Description |
-|---|---|
-| `addLeftChild(NodeID parentID, T data)` | Inserts into left slot; throws if occupied |
-| `addRightChild(NodeID parentID, T data)` | Inserts into right slot; throws if occupied |
-| `setLeft(NodeID parentID, BinaryDataNode<T> node)` | Unconditionally replaces left slot |
-| `setRight(NodeID parentID, BinaryDataNode<T> node)` | Unconditionally replaces right slot |
-| `inOrderIterator()` | Left → root → right iterator from root |
-| `inOrderIterator(BinaryDataNode<T> node)` | In-order from a specific node |
-
----
-
-### `NodeManager<T>`
-
-Obtained via `tree.getNodeManager()`.
-
-| Method | Description |
-|---|---|
-| `getNode(NodeID id)` | Finds a node by ID; throws `NodeNotFoundException` if missing |
-| `findAll(Predicate<T> predicate)` | Returns all nodes matching the predicate (DFS order) |
-| `findAll(Predicate<T> predicate, PersistentDataNode<T> subtree)` | Same, scoped to a subtree |
-
----
-
-### `VersionManager<K, T>`
-
-Obtained via `tree.getVersionManager()`.
-
-| Method | Description |
-|---|---|
-| `addVersion(K key, PersistentDataNode<T> root)` | Snapshots the given root under a key |
-| `getVersion(K key)` | Returns `Optional<PersistentDataNode<T>>` for the key |
-| `getCurrentVersion()` | Returns the most recently added version |
-| `getKeys()` | Returns all stored version keys |
-| `getVersions()` | Returns all stored root nodes |
-
----
-
-### `PersistentDataNode<T>`
-
-| Method | Description |
-|---|---|
-| `getData()` | Returns the node's data payload |
-| `getID()` | Returns the node's `NodeID` |
-| `getChildren()` | Returns an unmodifiable list of child nodes |
-
-### `BinaryDataNode<T>` *(extends `PersistentDataNode<T>`)*
-
-| Method | Description |
-|---|---|
-| `getLeft()` | Returns the left child, or `null` |
-| `getRight()` | Returns the right child, or `null` |
-
----
-
-## Exceptions
-
-| Exception | When thrown |
-|---|---|
-| `NodeNotFoundException` | Target or parent `NodeID` not found in the tree |
-| `NodePositionOccupiedException` | Attempting to `addLeftChild`/`addRightChild` on an already-occupied slot |
-
----
-
-## Traversal Summary
-
-| Iterator | Order | Available on |
-|---|---|---|
-| `dfsIterator()` | Pre-order (root → left → right) | N-ary & Binary |
-| `bfsIterator()` | Level-order | N-ary & Binary |
-| `inOrderIterator()` | Left → root → right | Binary only |
-
----
-
-## Versioning Pattern
+Single entry point for creating trees:
 
 ```java
-// Work
+TreeFactory.createTree(data, TreeType.N_ARY);
+TreeFactory.createTree(data, TreeType.BINARY);
+```
+
+---
+
+### 🌳 PersistentTree
+
+Core interface:
+
+- `addChild(...)`
+- `update(...)`
+- `removeNode(...)`
+- `dfsIterator()`
+- `bfsIterator()`
+- `getVersionManager()`
+- `getNodeManager()`
+
+---
+
+### 🌿 BinaryTree (extends PersistentTree)
+
+Adds:
+
+- `addLeftChild(...)`
+- `addRightChild(...)`
+- `inOrderIterator()`
+
+---
+
+### 🔍 NodeManager
+
+```java
+tree.getNodeManager().getNode(id);
+tree.getNodeManager().findAll(predicate);
+```
+
+---
+
+### 🕓 VersionManager
+
+```java
+tree.getVersionManager().addVersion("v1", root);
+tree.getVersionManager().getVersion("v1");
+```
+
+---
+
+## 🔁 Traversals
+
+| Type | Order |
+|------|------|
+| DFS  | Root → Children |
+| BFS  | Level-order |
+| In-order | Left → Root → Right (Binary only) |
+
+---
+
+## 🧪 Versioning Example
+
+```java
 NodeID a = tree.addChild(tree.getRoot().getID(), "A");
-tree.getVersionManager().addVersion("after-A", tree.getRoot());
+tree.getVersionManager().addVersion("v1", tree.getRoot());
 
-NodeID b = tree.addChild(tree.getRoot().getID(), "B");
-tree.getVersionManager().addVersion("after-B", tree.getRoot());
+tree.addChild(tree.getRoot().getID(), "B");
 
-// Time travel
-PersistentDataNode<String> old = tree.getVersionManager()
-        .getVersion("after-A").orElseThrow();
-
-// 'old' still shows only "A" — "B" does not exist here
+PersistentDataNode<String> old =
+    tree.getVersionManager().getVersion("v1").orElseThrow();
 ```
 
 ---
 
-## Thread Safety
+## ⚠️ Exceptions
 
-Node objects (`PDataNode`, `PBinaryDataNode`) are immutable and safe to share across threads. The tree objects themselves (`PersistentNTree`, `PersistentBinaryTree`) are **not thread-safe** — external synchronization is required if mutating from multiple threads.
+- `NodeNotFoundException`
+- `NodePositionOccupiedException`
 
 ---
 
-## Package Structure
+## 🧵 Thread Safety
+
+| Component | Thread-safe |
+|----------|------------|
+| Nodes | ✅ Yes (immutable) |
+| Trees | ❌ No |
+
+---
+
+## 📁 Project Structure
 
 ```
-org.pvb.persistenttree
+immutree
 ├── api
-│   ├── PersistentTree.java
-│   ├── BinaryTree.java
-│   ├── PersistentDataNode.java
-│   ├── BinaryDataNode.java
-│   ├── NodeID.java
-│   ├── NodeManager.java
-│   ├── VersionManager.java
-│   ├── PersistentIterator.java
-│   ├── Enums/
-│   │   └── TreeType.java
-│   └── Exceptions/
-│       ├── NodeNotFoundException.java
-│       └── NodePositionOccupiedException.java
-└── core
-    ├── TreeFactory.java
-    ├── PersistentNTree.java
-    ├── PersistentBinaryTree.java
-    ├── PDataNode.java
-    ├── PBinaryDataNode.java
-    ├── DefaultNodeManager.java
-    ├── DefaultVersionManager.java
-    ├── DfsIterator.java
-    ├── BfsIterator.java
-    └── InOrderIterator.java
+├── core
+└── utils
 ```
 
 ---
 
-## License
+## 💡 Use Cases
 
-MIT License. See [LICENSE](LICENSE) for details.
+- Undo/Redo systems
+- Versioned data models
+- Compiler ASTs
+- Collaborative editors
+- Time-travel debugging
+
+---
+
+## 🛣 Roadmap
+
+- [ ] Kotlin support
+- [ ] Serialization support
+- [ ] Persistent Graphs
+- [ ] Concurrent-safe tree wrapper
+
+---
+
+## 📜 License
+
+MIT License — free to use, modify, and distribute.
+
+---
+
+## 🙌 Contributing
+
+Pull requests are welcome. For major changes, open an issue first.
+
+---
+
+## ⭐ Support
+
+If you found this useful:
+
+👉 Star the repo  
+👉 Share it  
+👉 Use it in your projects  
+
+---
+
+## 👨‍💻 Author
+
+**Parth Bedekar**  
+Building systems that don’t forget their past.
