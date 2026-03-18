@@ -1,4 +1,4 @@
-# persistence-tree-engine
+# ImmuTree-persistence-tree-engine
 
 A **Java library for persistent (immutable) tree data structures** built on structural sharing (path-copying). Every mutating operation — update, add, remove — produces a new version of the tree while leaving all prior versions intact and reachable. No copies of unchanged nodes are made; unmodified subtrees are shared across versions.
 
