@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- ══════════════════════════════════════════════════════
+         COORDINATES  — change artifactId here if renaming
+         ══════════════════════════════════════════════════════ -->
+    <groupId>io.github.ParthBedekar</groupId>
+    <artifactId>immutree</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+
+    <!-- ══════════════════════════════════════════════════════
+         PROJECT METADATA  — required by Maven Central
+         ══════════════════════════════════════════════════════ -->
+    <name>persistence-tree-engine</name>
+    <description>
+        A Java library for fully persistent (immutable) N-ary and binary tree
+        data structures backed by structural sharing (path-copying). Every
+        mutating operation produces a new version of the tree while preserving
+        all prior versions intact.
+    </description>
+    <url>https://github.com/ParthBedekar/immutree</url>
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>pvb</id>
+            <name>YOUR_NAME</name>
+            <email>YOUR_EMAIL</email>
+            <url>https://github.com/YOUR_USERNAME</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/YOUR_USERNAME/persistence-tree-engine.git</connection>
+        <developerConnection>scm:git:ssh://github.com/YOUR_USERNAME/persistence-tree-engine.git</developerConnection>
+        <url>https://github.com/YOUR_USERNAME/persistence-tree-engine</url>
+        <tag>v1.1.0</tag>
+    </scm>
+
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/YOUR_USERNAME/persistence-tree-engine/issues</url>
+    </issueManagement>
+
+    <!-- ══════════════════════════════════════════════════════
+         PROPERTIES
+         ══════════════════════════════════════════════════════ -->
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
+
+    <!-- ══════════════════════════════════════════════════════
+         BUILD PLUGINS
+         ══════════════════════════════════════════════════════ -->
+    <build>
+        <plugins>
+
+            <!-- 1. Compiler -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <source>21</source>
+                    <target>21</target>
+                </configuration>
+            </plugin>
+
+            <!-- 2. Sources JAR  (required by Maven Central) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.3.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- 3. Javadoc JAR  (required by Maven Central) -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.7.0</version>
+                <configuration>
+                    <doclint>none</doclint>
+                    <quiet>true</quiet>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- 4. GPG signing  (required by Maven Central) -->
+            <!--    Set gpg.passphrase in ~/.m2/settings.xml  -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>3.2.4</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- 5. Sonatype Central publisher -->
+            <plugin>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>0.5.0</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <publishingServerId>central</publishingServerId>
+                    <autoPublish>true</autoPublish>
+                    <waitUntil>published</waitUntil>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>
