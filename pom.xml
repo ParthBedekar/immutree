@@ -8,7 +8,7 @@
     <!-- ══════════════════════════════════════════════════════
          COORDINATES  — change artifactId here if renaming
          ══════════════════════════════════════════════════════ -->
-    <groupId>io.github.ParthBedekar</groupId>
+    <groupId>io.github.parthbedekar</groupId>
     <artifactId>immutree</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
@@ -31,26 +31,32 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-
+    <dependencies>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.17.2</version>
+        </dependency>
+    </dependencies>
     <developers>
         <developer>
             <id>pvb</id>
-            <name>YOUR_NAME</name>
-            <email>YOUR_EMAIL</email>
-            <url>https://github.com/YOUR_USERNAME</url>
+            <name>Parth Bedekar</name>
+            <email>parthbedekar62@gmail.com</email>
+            <url>https://github.com/ParthBedekar</url>
         </developer>
     </developers>
 
     <scm>
-        <connection>scm:git:git://github.com/YOUR_USERNAME/persistence-tree-engine.git</connection>
-        <developerConnection>scm:git:ssh://github.com/YOUR_USERNAME/persistence-tree-engine.git</developerConnection>
-        <url>https://github.com/YOUR_USERNAME/persistence-tree-engine</url>
+        <connection>scm:git:git://github.com/ParthBEdekar/persistence-tree-engine.git</connection>
+        <developerConnection>scm:git:ssh://github.com/ParthBedekar/persistence-tree-engine.git</developerConnection>
+        <url>https://github.com/ParthBedekar/persistence-tree-engine</url>
         <tag>v1.1.0</tag>
     </scm>
 
     <issueManagement>
         <system>GitHub Issues</system>
-        <url>https://github.com/YOUR_USERNAME/persistence-tree-engine/issues</url>
+        <url>https://github.com/ParthBedekar/persistence-tree-engine/issues</url>
     </issueManagement>
 
     <!-- ══════════════════════════════════════════════════════
@@ -129,6 +135,13 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <executable>gpg</executable>
+                    <gpgArguments>
+                        <arg>--pinentry-mode</arg>
+                        <arg>loopback</arg>
+                    </gpgArguments>
+                </configuration>
             </plugin>
 
             <!-- 5. Sonatype Central publisher -->

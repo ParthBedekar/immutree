@@ -1,6 +1,7 @@
 package org.pvb.persistenttree.core;
 
 import org.pvb.persistenttree.api.BinaryTree;
+import org.pvb.persistenttree.api.NodeID;
 import org.pvb.persistenttree.api.PersistentTree;
 import org.pvb.persistenttree.api.Enums.TreeType;
 
@@ -117,6 +118,12 @@ public final class TreeFactory {
         return switch (type) {
             case BINARY -> new PersistentBinaryTree<>(data);
             default     -> new PersistentNTree<>(data);
+        };
+    }
+    public static <K, T> PersistentTree<K, T> createTreeWithId(T data, NodeID rootId, TreeType type) {
+        return switch (type) {
+            case BINARY -> new PersistentBinaryTree<>(data);
+            default -> new PersistentNTree<>(rootId, data);
         };
     }
 }

@@ -338,4 +338,5 @@ public interface PersistentTree<K, T> {
      *                               within the subtree rooted at {@code node}
      */
     PersistentDataNode<T> removeNode(NodeID id, PersistentDataNode<T> node);
+    NodeID addChildWithId(NodeID parentID, NodeID childID, T data);
 }

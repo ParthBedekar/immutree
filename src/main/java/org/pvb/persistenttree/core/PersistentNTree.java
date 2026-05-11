@@ -125,7 +125,11 @@ public class PersistentNTree<K, T> implements PersistentTree<K, T> {
         nodeManager = new DefaultNodeManager<>(root);
         versionManager = new DefaultVersionManager<>();
     }
-
+    PersistentNTree(NodeID rootId, T data) {
+        root = new PDataNode<>(rootId, data);
+        nodeManager = new DefaultNodeManager<>(root);
+        versionManager = new DefaultVersionManager<>();
+    }
     /** {@inheritDoc} */
     @Override
     public NodeManager<T> getNodeManager() {
@@ -170,7 +174,9 @@ public class PersistentNTree<K, T> implements PersistentTree<K, T> {
      * @param newData the new data to assign to the target node
      * @return the updated subtree root (a new node if anything changed, the original
      *         node if nothing changed within this subtree)
+     *
      */
+
     private PersistentDataNode<T> updateHelper(NodeID id, PersistentDataNode<T> root, T newData) {
         if (root == null) {
             return null;
@@ -512,7 +518,7 @@ public class PersistentNTree<K, T> implements PersistentTree<K, T> {
 
     /**
      * {@inheritDoc}
-     *
+     *x
      * <p>Creates a new {@link DfsIterator} seeded with the provided {@code node}.</p>
      */
     @Override
@@ -528,5 +534,44 @@ public class PersistentNTree<K, T> implements PersistentTree<K, T> {
     @Override
     public PersistentIterator<T> bfsIterator(PersistentDataNode<T> node) {
         return new BfsIterator<>(node);
+    }
+
+    public NodeID addChildWithId(NodeID parentID, NodeID childID, T data) {
+        NewChild<T> result = addChildWithIdHelper(parentID, childID, data, this.root);
+        if (result == null) {
+            throw new NodeNotFoundException("Parent node not found with ID: " + parentID.id());
+        }
+        this.root = result.child();
+        ((DefaultNodeManager<T>) nodeManager).updateRoot(this.root);
+        return result.id();
+    }
+
+    private NewChild<T> addChildWithIdHelper(NodeID parentID, NodeID childID, T data, PersistentDataNode<T> root) {
+        if (root == null) return null;
+
+        if (root.getID().equals(parentID)) {
+            List<PersistentDataNode<T>> list = new ArrayList<>(root.getChildren());
+            PersistentDataNode<T> newNode = new PDataNode<>(childID, data);
+            list.add(newNode);
+            return new NewChild<>(childID, new PDataNode<>(parentID, root.getData(), list));
+        }
+
+        List<PersistentDataNode<T>> updatedList = new ArrayList<>();
+        boolean updated = false;
+        NodeID foundId = null;
+
+        for (PersistentDataNode<T> n : root.getChildren()) {
+            NewChild<T> result = addChildWithIdHelper(parentID, childID, data, n);
+            if (result == null) {
+                updatedList.add(n);
+            } else {
+                updatedList.add(result.child());
+                foundId = result.id();
+                updated = true;
+            }
+        }
+
+        if (!updated) return null;
+        return new NewChild<>(foundId, new PDataNode<>(root.getID(), root.getData(), updatedList));
     }
 }
